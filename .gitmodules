@@ -4,3 +4,6 @@
 [submodule "lib/socket-protocol"]
 	path = lib/socket-protocol
 	url = https://github.com/SocketDotTech/socket-protocol
+[submodule "lib/solady"]
+	path = lib/solady
+	url = https://github.com/vectorized/solady
