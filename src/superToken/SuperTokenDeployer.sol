@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "socket-protocol/contracts/base/AppDeployerBase.sol";
 import "solady/auth/Ownable.sol";
 import "./SuperToken.sol";
+import "./Vault.sol";
 
 /**
  * @title SuperTokenDeployer
@@ -15,34 +16,47 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
      * @notice Unique identifier for the SuperToken contract
      * @dev Used to track and manage the SuperToken contract across different chains
      */
-    bytes32 public superToken = _createContractId("superToken");
+    bytes32 public immutable superToken = _createContractId("superToken");
+    bytes32 public immutable vault = _createContractId("vault");
+    uint32 public baseChainSlug;
 
     /**
      * @notice Constructor to initialize the SuperTokenDeployer
-     * @param addressResolver_ Address of the address resolver contract
-     * @param owner_ Address of the contract owner
-     * @param name_ Name of the token to be deployed
-     * @param symbol_ Symbol of the token to be deployed
-     * @param decimals_ Number of decimals for the token
-     * @param feesData_ Struct containing fee-related data for deployment
+     * @param baseChainSlug_ Chain ID of the original ERC20 already deployed
+     * @param baseTokenAddress Token address of the original ERC20 already deployed
+     * @param addressResolver Address of the address resolver contract
+     * @param owner Address of the contract owner
+     * @param name Name of the token to be deployed
+     * @param symbol Symbol of the token to be deployed
+     * @param decimals Number of decimals for the token
+     * @param feesData Struct containing fee-related data for deployment
      * @dev Sets up the contract with token creation code and initializes ownership
      */
     constructor(
-        address addressResolver_,
-        address owner_,
-        string memory name_,
-        string memory symbol_,
-        uint8 decimals_,
-        FeesData memory feesData_
-    ) AppDeployerBase(addressResolver_) Ownable() {
-        _initializeOwner(owner_);
+        uint32 baseChainSlug_,
+        address baseTokenAddress,
+        address owner,
+        string memory name,
+        string memory symbol,
+        uint8 decimals,
+        address addressResolver,
+        FeesData memory feesData
+    ) AppDeployerBase(addressResolver) Ownable() {
+        baseChainSlug = baseChainSlug_;
+
+        _initializeOwner(owner);
 
         creationCodeWithArgs[superToken] = abi.encodePacked(
             type(SuperToken).creationCode,
-            abi.encode(name_, symbol_, decimals_)
+            abi.encode(name, symbol, decimals)
         );
 
-        _setFeesData(feesData_);
+        creationCodeWithArgs[vault] = abi.encodePacked(
+            type(Vault).creationCode,
+            abi.encode(owner, baseTokenAddress)
+        );
+
+        _setFeesData(feesData);
     }
 
     /**
@@ -52,8 +66,12 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
      * @custom:modifier Accessible to contract owner or authorized deployers
      */
     function deployContracts(uint32 chainSlug) external async {
-        // TODO: Add logic to process if token is already deployed on a chain
-        _deploy(superToken, chainSlug);
+        if (chainSlug == baseChainSlug) {
+            _deploy(vault, chainSlug);
+        } else {
+            _deploy(superToken, chainSlug);
+        }
+        // TODO: Add onchain and forwarder addresses to a mapping of deployed contracts
     }
 
     /**
