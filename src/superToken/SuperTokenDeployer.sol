@@ -19,11 +19,12 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
     bytes32 public immutable superToken = _createContractId("superToken");
     bytes32 public immutable vault = _createContractId("vault");
     uint32 public baseChainSlug;
+    address public baseTokenAddress;
 
     /**
      * @notice Constructor to initialize the SuperTokenDeployer
      * @param baseChainSlug_ Chain ID of the original ERC20 already deployed
-     * @param baseTokenAddress Token address of the original ERC20 already deployed
+     * @param baseTokenAddress_ Token address of the original ERC20 already deployed
      * @param addressResolver Address of the address resolver contract
      * @param owner Address of the contract owner
      * @param name Name of the token to be deployed
@@ -34,7 +35,7 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
      */
     constructor(
         uint32 baseChainSlug_,
-        address baseTokenAddress,
+        address baseTokenAddress_,
         address owner,
         string memory name,
         string memory symbol,
@@ -43,6 +44,7 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
         FeesData memory feesData
     ) AppDeployerBase(addressResolver) Ownable() {
         baseChainSlug = baseChainSlug_;
+        baseTokenAddress = baseTokenAddress_;
 
         _initializeOwner(owner);
 
@@ -53,7 +55,7 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
 
         creationCodeWithArgs[vault] = abi.encodePacked(
             type(Vault).creationCode,
-            abi.encode(owner, baseTokenAddress)
+            abi.encode(owner, baseTokenAddress_)
         );
 
         _setFeesData(feesData);
@@ -67,11 +69,15 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
      */
     function deployContracts(uint32 chainSlug) external async {
         if (chainSlug == baseChainSlug) {
+            addressResolver.deployForwarderContract(
+                address(this),
+                baseTokenAddress,
+                chainSlug
+            );
             _deploy(vault, chainSlug);
         } else {
             _deploy(superToken, chainSlug);
         }
-        // TODO: Add onchain and forwarder addresses to a mapping of deployed contracts
     }
 
     /**
