@@ -16,6 +16,8 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
      * @dev Incremented with each bridging operation
      */
     uint256 public idCounter;
+    uint32 public baseChainSlug;
+    address public baseTokenAddress;
 
     /**
      * @notice Emitted when a token bridging operation is initiated
@@ -42,18 +44,27 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
 
     /**
      * @notice Constructor to initialize the SuperTokenApp
+     * @param baseChainSlug_ Chain ID of the original ERC20 already deployed
+     * @param baseTokenAddress_ Token address of the original ERC20 already deployed
      * @param _addressResolver Address of the cross-chain address resolver
      * @param deployerContract_ Address of the contract deployer
      * @param feesData_ Struct containing fee-related data for bridging
      * @dev Sets up the contract, initializes ownership, and configures gateways
      */
     constructor(
+        uint32 baseChainSlug_,
+        address baseTokenAddress_,
         address _addressResolver,
         address deployerContract_,
         FeesData memory feesData_
     ) AppGatewayBase(_addressResolver) Ownable() {
+        baseChainSlug = baseChainSlug_;
+        baseTokenAddress = baseTokenAddress_;
+
         _initializeOwner(msg.sender);
+
         addressResolver.setContractsToGateways(deployerContract_);
+
         _setFeesData(feesData_);
     }
 
