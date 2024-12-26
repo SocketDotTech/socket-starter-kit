@@ -9,14 +9,13 @@ contract Vault is Ownable {
     // Custom Errors
     error ZeroDepositAmount();
     error ZeroWithdrawAmount();
-    error InsufficientBalance();
     error NotSOCKET();
 
     // Events
     event Deposited(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
 
-    mapping(address => uint256) public balances;
+    uint256 public balance;
     address public _SOCKET;
     address public token;
 
@@ -34,13 +33,13 @@ contract Vault is Ownable {
     /**
      * @notice Deposit ERC20 tokens into the vault
      * @param amount Amount of tokens to deposit
+     * @param user Address of the user whose tokens are being deposited
      */
-    function deposit(uint256 amount) external onlySOCKET {
+    function deposit(uint256 amount, address user) external onlySOCKET {
         if (amount == 0) revert ZeroDepositAmount();
 
-        balances[msg.sender] += amount;
-
-        SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), amount);
+        balance += amount;
+        SafeTransferLib.safeTransferFrom(token, user, address(this), amount);
 
         emit Deposited(msg.sender, amount);
     }
@@ -48,26 +47,15 @@ contract Vault is Ownable {
     /**
      * @notice Withdraw ERC20 tokens from the vault
      * @param amount Amount of tokens to withdraw
+     * @param user Address of the user to receive the tokens
      */
-    function withdraw(uint256 amount) external onlySOCKET {
+    function withdraw(uint256 amount, address user) external onlySOCKET {
         if (amount == 0) revert ZeroWithdrawAmount();
 
-        if (balances[msg.sender] < amount) revert InsufficientBalance();
+        balance -= amount;
+        SafeTransferLib.safeTransfer(token, user, amount);
 
-        balances[msg.sender] -= amount;
-
-        SafeTransferLib.safeTransfer(token, msg.sender, amount);
-
-        emit Withdrawn(msg.sender, amount);
-    }
-
-    /**
-     * @notice Get user's balance for the token
-     * @param user Address of the user
-     * @return User's balance of the specified token
-     */
-    function getBalance(address user) external view returns (uint256) {
-        return balances[user];
+        emit Withdrawn(user, amount);
     }
 
     /**

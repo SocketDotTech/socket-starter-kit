@@ -5,7 +5,6 @@ interface IVault {
     // Custom Errors
     error ZeroDepositAmount();
     error ZeroWithdrawAmount();
-    error InsufficientBalance();
     error NotSOCKET();
 
     // Events
@@ -13,7 +12,7 @@ interface IVault {
     event Withdrawn(address indexed user, uint256 amount);
 
     // State Variables
-    function balances(address user) external view returns (uint256);
+    function balance() external view returns (uint256);
     function _SOCKET() external view returns (address);
     function token() external view returns (address);
 
@@ -22,21 +21,16 @@ interface IVault {
     /**
      * @notice Deposit ERC20 tokens into the vault
      * @param amount Amount of tokens to deposit
+     * @param user Address of the user whose tokens are being deposited
      */
-    function deposit(uint256 amount) external;
+    function deposit(uint256 amount, address user) external;
 
     /**
      * @notice Withdraw ERC20 tokens from the vault
      * @param amount Amount of tokens to withdraw
+     * @param user Address of the user to receive the tokens
      */
-    function withdraw(uint256 amount) external;
-
-    /**
-     * @notice Get user's balance for the token
-     * @param user Address of the user
-     * @return User's balance of the specified token
-     */
-    function getBalance(address user) external view returns (uint256);
+    function withdraw(uint256 amount, address user) external;
 
     /**
      * @notice Allows the owner to rescue tokens accidentally sent to the contract
