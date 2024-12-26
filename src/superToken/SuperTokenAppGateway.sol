@@ -6,6 +6,7 @@ import "socket-protocol/contracts/base/AppGatewayBase.sol";
 import "socket-protocol/contracts/interfaces/IForwarder.sol";
 
 import {ISuperToken} from "./ISuperToken.sol";
+import {IVault} from "./IVault.sol";
 import {ISuperTokenDeployer} from "./ISuperTokenDeployer.sol";
 
 /**
@@ -19,8 +20,8 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
      * @dev Incremented with each bridging operation
      */
     uint256 public idCounter;
-
-    ISuperTokenDeployer public deployer;
+    address public vault;
+    uint32 public baseChainSlug;
 
     /**
      * @notice Represents a user's token bridging order
@@ -58,7 +59,9 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
         AppGatewayBase(_addressResolver)
         Ownable()
     {
-        deployer = ISuperTokenDeployer(deployerContract_);
+        ISuperTokenDeployer deployer = ISuperTokenDeployer(deployerContract_);
+        baseChainSlug = deployer.baseChainSlug();
+        vault = deployer.forwarderAddresses(deployer.vault(), baseChainSlug);
 
         _initializeOwner(msg.sender);
 
@@ -105,18 +108,16 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
         if (order.srcToken == order.dstToken) {
             ISuperToken(order.srcToken).transferFrom(order.srcUser, order.dstUser, order.srcAmount);
         } else {
-            // | src \ dst  | baseChain  | other      |
-            // |------------|------------|------------|
-            // | baseChain  | transfer   | Vault/mint |
-            // | other      | burn/Vault | burn/mint  |
-            if (IForwarder(order.srcToken).getChainSlug() == deployer.baseChainSlug()) {
-                // Vault and mint
-                // TODO: Figure out how to get the Vault address
+            // | src \ dst  | baseChain     | other        |
+            // |------------|---------------|--------------|
+            // | baseChain  | transfer      | deposit/mint |
+            // | other      | burn/withdraw | burn/mint    |
+            if (IForwarder(order.srcToken).getChainSlug() == baseChainSlug) {
+                IVault(vault).deposit(order.srcAmount, order.srcUser);
                 ISuperToken(order.dstToken).mint(order.dstUser, order.srcAmount);
-            } else if (IForwarder(order.dstToken).getChainSlug() == deployer.baseChainSlug()) {
-                // burn and Vault
+            } else if (IForwarder(order.dstToken).getChainSlug() == baseChainSlug) {
                 ISuperToken(order.srcToken).burn(order.srcUser, order.srcAmount);
-                // TODO: Figure out how to get the Vault address
+                IVault(vault).withdraw(order.srcAmount, order.dstUser);
             } else {
                 ISuperToken(order.srcToken).burn(order.srcUser, order.srcAmount);
                 ISuperToken(order.dstToken).mint(order.dstUser, order.srcAmount);
@@ -124,6 +125,7 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
         }
 
         emit Bridged(asyncId);
+        idCounter += 1;
     }
 
     /**
