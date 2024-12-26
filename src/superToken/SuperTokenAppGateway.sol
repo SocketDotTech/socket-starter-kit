@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
+import "solady/auth/Ownable.sol";
 import "socket-protocol/contracts/base/AppGatewayBase.sol";
 import "socket-protocol/contracts/interfaces/IForwarder.sol";
-import "solady/auth/Ownable.sol";
+
 import {ISuperToken} from "./ISuperToken.sol";
+import {ISuperTokenDeployer} from "./ISuperTokenDeployer.sol";
 
 /**
  * @title SuperTokenApp
@@ -17,14 +19,8 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
      * @dev Incremented with each bridging operation
      */
     uint256 public idCounter;
-    uint32 public baseChainSlug;
-    address public baseTokenAddress;
 
-    /**
-     * @notice Emitted when a token bridging operation is initiated
-     * @param asyncId Unique identifier for the asynchronous cross-chain transaction
-     */
-    event Bridged(bytes32 asyncId);
+    ISuperTokenDeployer public deployer;
 
     /**
      * @notice Represents a user's token bridging order
@@ -46,23 +42,23 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
     }
 
     /**
+     * @notice Emitted when a token bridging operation is initiated
+     * @param asyncId Unique identifier for the asynchronous cross-chain transaction
+     */
+    event Bridged(bytes32 asyncId);
+
+    /**
      * @notice Constructor to initialize the SuperTokenApp
-     * @param baseChainSlug_ Chain ID of the original ERC20 already deployed
-     * @param baseTokenAddress_ Token address of the original ERC20 already deployed
      * @param _addressResolver Address of the cross-chain address resolver
      * @param deployerContract_ Address of the contract deployer
      * @param feesData_ Struct containing fee-related data for bridging
      * @dev Sets up the contract, initializes ownership, and configures gateways
      */
-    constructor(
-        uint32 baseChainSlug_,
-        address baseTokenAddress_,
-        address _addressResolver,
-        address deployerContract_,
-        FeesData memory feesData_
-    ) AppGatewayBase(_addressResolver) Ownable() {
-        baseChainSlug = baseChainSlug_;
-        baseTokenAddress = baseTokenAddress_;
+    constructor(address _addressResolver, address deployerContract_, FeesData memory feesData_)
+        AppGatewayBase(_addressResolver)
+        Ownable()
+    {
+        deployer = ISuperTokenDeployer(deployerContract_);
 
         _initializeOwner(msg.sender);
 
@@ -118,26 +114,23 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
 
         // if same-chain transfer
         if (order.srcToken == order.dstToken) {
-            ISuperToken(order.srcToken).transferFrom(
-                order.srcUser,
-                order.dstUser,
-                order.srcAmount
-            );
+            ISuperToken(order.srcToken).transferFrom(order.srcUser, order.dstUser, order.srcAmount);
         } else {
             // | src \ dst  | baseChain  | other      |
             // |------------|------------|------------|
             // | baseChain  | transfer   | Vault/mint |
             // | other      | burn/Vault | burn/mint  |
-            if (IForwarder(order.srcToken).getChainSlug() == baseChainSlug) {
+            if (IForwarder(order.srcToken).getChainSlug() == deployer.baseChainSlug()) {
                 // Vault and mint
                 // TODO: Figure out how to get the Vault address
-            } else if (
-                IForwarder(order.dstToken).getChainSlug() == baseChainSlug
-            ) {
+                ISuperToken(order.dstToken).mint(order.dstUser, order.srcAmount);
+            } else if (IForwarder(order.dstToken).getChainSlug() == deployer.baseChainSlug()) {
                 // burn and Vault
+                ISuperToken(order.srcToken).burn(order.srcUser, order.srcAmount);
                 // TODO: Figure out how to get the Vault address
             } else {
-                // burn and mint
+                ISuperToken(order.srcToken).burn(order.srcUser, order.srcAmount);
+                ISuperToken(order.dstToken).mint(order.dstUser, order.srcAmount);
             }
         }
 
