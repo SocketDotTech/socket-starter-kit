@@ -14,7 +14,7 @@ import {ISuperTokenDeployer} from "./ISuperTokenDeployer.sol";
  * @notice A cross-chain application for bridging tokens
  * @dev Extends AppGatewayBase and Ownable to provide a chain abstracted token bridging functionality
  */
-contract SuperTokenApp is AppGatewayBase, Ownable {
+contract SuperTokenAppGateway is AppGatewayBase, Ownable {
     /**
      * @notice Counter to track unique transaction IDs
      * @dev Incremented with each bridging operation
