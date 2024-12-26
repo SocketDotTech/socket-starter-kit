@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "socket-protocol/contracts/base/AppGatewayBase.sol";
+import "socket-protocol/contracts/interfaces/IForwarder.sol";
 import "solady/auth/Ownable.sol";
 import {ISuperToken} from "./ISuperToken.sol";
 
@@ -34,8 +35,10 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
         address srcToken;
         /// @notice Destination token contract address
         address dstToken;
-        /// @notice User initiating the bridge transaction
-        address user;
+        /// @notice User initiating the transaction
+        address srcUser;
+        /// @notice User receiving the funds
+        address dstUser;
         /// @notice Amount of tokens to be bridged from source chain
         uint256 srcAmount;
         /// @notice Deadline for the bridge transaction
@@ -102,16 +105,41 @@ contract SuperTokenApp is AppGatewayBase, Ownable {
     ) external async returns (bytes32 asyncId) {
         UserOrder memory order = abi.decode(_order, (UserOrder));
         asyncId = _getCurrentAsyncId();
-        /* TODO:
-            1. Check user balance on src chain
-            2. Check if it was a already deployed contract
-                if original contract,
-                    transferFrom user to Vault
-                    mint to user on dst chain
-                if supertoken,
-                    burn from user
-                    transferFrom Vault to user
-        */
+        // Check user balance on src chain
+        _readCallOn();
+        // Request to forwarder and deploys immutable promise contract and stores it
+        ISuperToken(order.srcToken).balanceOf(order.srcUser);
+        IPromise(order.srcToken).then(
+            this.checkBalance.selector,
+            abi.encode(order, asyncId)
+        );
+
+        _readCallOff();
+
+        // if same-chain transfer
+        if (order.srcToken == order.dstToken) {
+            ISuperToken(order.srcToken).transferFrom(
+                order.srcUser,
+                order.dstUser,
+                order.srcAmount
+            );
+        } else {
+            // | src \ dst  | baseChain  | other      |
+            // |------------|------------|------------|
+            // | baseChain  | transfer   | Vault/mint |
+            // | other      | burn/Vault | burn/mint  |
+            if (IForwarder(order.srcToken).getChainSlug() == baseChainSlug) {
+                // Vault and mint
+                // TODO: Figure out how to get the Vault address
+            } else if (
+                IForwarder(order.dstToken).getChainSlug() == baseChainSlug
+            ) {
+                // burn and Vault
+                // TODO: Figure out how to get the Vault address
+            } else {
+                // burn and mint
+            }
+        }
 
         emit Bridged(asyncId);
     }
