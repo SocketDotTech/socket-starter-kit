@@ -6,8 +6,6 @@ import "solady/tokens/ERC20.sol";
 import "solady/auth/Ownable.sol";
 
 contract Vault is Ownable {
-    using SafeTransferLib for address;
-
     // Custom Errors
     error ZeroDepositAmount();
     error ZeroWithdrawAmount();
