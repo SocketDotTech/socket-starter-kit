@@ -42,12 +42,7 @@ contract Vault is Ownable {
 
         balances[msg.sender] += amount;
 
-        SafeTransferLib.safeTransferFrom(
-            token,
-            msg.sender,
-            address(this),
-            amount
-        );
+        SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), amount);
 
         emit Deposited(msg.sender, amount);
     }
@@ -83,11 +78,7 @@ contract Vault is Ownable {
      * @param amount Amount of tokens to rescue
      * @param recipient Address to send rescued tokens to
      */
-    function rescueTokens(
-        address token_,
-        uint256 amount,
-        address recipient
-    ) external onlyOwner {
+    function rescueTokens(address token_, uint256 amount, address recipient) external onlyOwner {
         SafeTransferLib.safeTransfer(token_, recipient, amount);
     }
 }

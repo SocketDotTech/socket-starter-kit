@@ -48,15 +48,10 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
 
         _initializeOwner(owner);
 
-        creationCodeWithArgs[superToken] = abi.encodePacked(
-            type(SuperToken).creationCode,
-            abi.encode(name, symbol, decimals)
-        );
+        creationCodeWithArgs[superToken] =
+            abi.encodePacked(type(SuperToken).creationCode, abi.encode(name, symbol, decimals));
 
-        creationCodeWithArgs[vault] = abi.encodePacked(
-            type(Vault).creationCode,
-            abi.encode(owner, baseTokenAddress_)
-        );
+        creationCodeWithArgs[vault] = abi.encodePacked(type(Vault).creationCode, abi.encode(owner, baseTokenAddress_));
 
         _setFeesData(feesData);
     }
@@ -69,11 +64,7 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
      */
     function deployContracts(uint32 chainSlug) external async {
         if (chainSlug == baseChainSlug) {
-            addressResolver.deployForwarderContract(
-                address(this),
-                baseTokenAddress,
-                chainSlug
-            );
+            addressResolver.deployForwarderContract(address(this), baseTokenAddress, chainSlug);
             _deploy(vault, chainSlug);
         } else {
             _deploy(superToken, chainSlug);
