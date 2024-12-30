@@ -4,11 +4,11 @@ pragma solidity ^0.8.13;
 import "solady/tokens/ERC20.sol";
 
 /**
- * @title SuperToken
+ * @title MultichainToken
  * @notice An ERC20 contract which enables bridging a token to its sibling chains.
  * @dev Implements a custom ERC20 token with minting and burning capabilities restricted to a socket address
  */
-contract SuperToken is ERC20 {
+contract MultichainToken is ERC20 {
     string private _name;
     string private _symbol;
     uint8 private _decimals;

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-interface ISuperTokenDeployer {
-    function superToken() external view returns (bytes32);
+interface IMultichainTokenDeployer {
+    function multichainToken() external view returns (bytes32);
 
     function vault() external view returns (bytes32);
 

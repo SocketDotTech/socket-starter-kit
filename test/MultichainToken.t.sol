@@ -3,25 +3,25 @@ pragma solidity ^0.8.13;
 
 import "socket-protocol/test/AuctionHouse.sol";
 
-import {SuperTokenDeployer} from "../src/superToken/SuperTokenDeployer.sol";
-import {SuperTokenAppGateway} from "../src/superToken/SuperTokenAppGateway.sol";
+import {MultichainTokenDeployer} from "../src/going-multichain-erc20/MultichainTokenDeployer.sol";
+import {MultichainTokenAppGateway} from "../src/going-multichain-erc20/MultichainTokenAppGateway.sol";
 
 import {MockERC20} from "./mocks/MockERC20.sol";
 
-contract SuperTokenTest is AuctionHouseTest {
+contract MultichainTokenTest is AuctionHouseTest {
     uint256 srcAmount = 0.01 ether;
 
     MockERC20 public token;
 
     struct AppContracts {
-        SuperTokenAppGateway superTokenApp;
-        SuperTokenDeployer superTokenDeployer;
-        bytes32 superToken;
+        MultichainTokenAppGateway multichainTokenApp;
+        MultichainTokenDeployer multichainTokenDeployer;
+        bytes32 multichainToken;
         bytes32 vault;
     }
 
     AppContracts appContracts;
-    SuperTokenAppGateway.UserOrder userOrder;
+    MultichainTokenAppGateway.UserOrder userOrder;
 
     event BatchCancelled(bytes32 indexed asyncId);
     event FinalizeRequested(bytes32 indexed payloadId, AsyncRequest asyncRequest);
@@ -35,11 +35,11 @@ contract SuperTokenTest is AuctionHouseTest {
         token.mint(address(this), 1000 * 10 ** 18);
 
         // Deploy Deployer and AppGateway
-        deploySuperTokenApp();
+        deployMultichainTokenApp();
     }
 
-    function deploySuperTokenApp() internal {
-        SuperTokenDeployer superTokenDeployer = new SuperTokenDeployer(
+    function deployMultichainTokenApp() internal {
+        MultichainTokenDeployer multichainTokenDeployer = new MultichainTokenDeployer(
             optChainSlug,
             address(token),
             owner,
@@ -50,14 +50,14 @@ contract SuperTokenTest is AuctionHouseTest {
             createFeesData(maxFees)
         );
 
-        SuperTokenAppGateway superTokenApp =
-            new SuperTokenAppGateway(address(addressResolver), address(superTokenDeployer), createFeesData(maxFees));
+        MultichainTokenAppGateway multichainTokenApp =
+            new MultichainTokenAppGateway(address(addressResolver), address(multichainTokenDeployer), createFeesData(maxFees));
 
         appContracts = AppContracts({
-            superTokenApp: superTokenApp,
-            superTokenDeployer: superTokenDeployer,
-            superToken: superTokenDeployer.superToken(),
-            vault: superTokenDeployer.vault()
+            multichainTokenApp: multichainTokenApp,
+            multichainTokenDeployer: multichainTokenDeployer,
+            multichainToken: multichainTokenDeployer.multichainToken(),
+            vault: multichainTokenDeployer.vault()
         });
     }
 

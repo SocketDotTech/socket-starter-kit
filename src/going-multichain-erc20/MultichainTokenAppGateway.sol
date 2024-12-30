@@ -5,16 +5,16 @@ import "solady/auth/Ownable.sol";
 import "socket-protocol/contracts/base/AppGatewayBase.sol";
 import "socket-protocol/contracts/interfaces/IForwarder.sol";
 
-import {ISuperToken} from "./ISuperToken.sol";
+import {IMultichainToken} from "./IMultichainToken.sol";
 import {IVault} from "./IVault.sol";
-import {ISuperTokenDeployer} from "./ISuperTokenDeployer.sol";
+import {IMultichainTokenDeployer} from "./IMultichainTokenDeployer.sol";
 
 /**
- * @title SuperTokenApp
+ * @title MultichainTokenApp
  * @notice A cross-chain application for bridging tokens
  * @dev Extends AppGatewayBase and Ownable to provide a chain abstracted token bridging functionality
  */
-contract SuperTokenAppGateway is AppGatewayBase, Ownable {
+contract MultichainTokenAppGateway is AppGatewayBase, Ownable {
     /**
      * @notice Counter to track unique transaction IDs
      * @dev Incremented with each bridging operation
@@ -49,7 +49,7 @@ contract SuperTokenAppGateway is AppGatewayBase, Ownable {
     event Bridged(bytes32 asyncId);
 
     /**
-     * @notice Constructor to initialize the SuperTokenApp
+     * @notice Constructor to initialize the MultichainTokenApp
      * @param _addressResolver Address of the cross-chain address resolver
      * @param deployerContract_ Address of the contract deployer
      * @param feesData_ Struct containing fee-related data for bridging
@@ -59,7 +59,7 @@ contract SuperTokenAppGateway is AppGatewayBase, Ownable {
         AppGatewayBase(_addressResolver)
         Ownable()
     {
-        ISuperTokenDeployer deployer = ISuperTokenDeployer(deployerContract_);
+        IMultichainTokenDeployer deployer = IMultichainTokenDeployer(deployerContract_);
         baseChainSlug = deployer.baseChainSlug();
         vault = deployer.forwarderAddresses(deployer.vault(), baseChainSlug);
 
@@ -99,14 +99,14 @@ contract SuperTokenAppGateway is AppGatewayBase, Ownable {
         // Check user balance on src chain
         _readCallOn();
         // Request to forwarder and deploys immutable promise contract and stores it
-        ISuperToken(order.srcToken).balanceOf(order.srcUser);
+        IMultichainToken(order.srcToken).balanceOf(order.srcUser);
         IPromise(order.srcToken).then(this.checkBalance.selector, abi.encode(order, asyncId));
 
         _readCallOff();
 
         // if same-chain transfer
         if (order.srcToken == order.dstToken) {
-            ISuperToken(order.srcToken).transferFrom(order.srcUser, order.dstUser, order.srcAmount);
+            IMultichainToken(order.srcToken).transferFrom(order.srcUser, order.dstUser, order.srcAmount);
         } else {
             // | src \ dst  | baseChain     | other        |
             // |------------|---------------|--------------|
@@ -114,13 +114,13 @@ contract SuperTokenAppGateway is AppGatewayBase, Ownable {
             // | other      | burn/withdraw | burn/mint    |
             if (IForwarder(order.srcToken).getChainSlug() == baseChainSlug) {
                 IVault(vault).deposit(order.srcAmount, order.srcUser);
-                ISuperToken(order.dstToken).mint(order.dstUser, order.srcAmount);
+                IMultichainToken(order.dstToken).mint(order.dstUser, order.srcAmount);
             } else if (IForwarder(order.dstToken).getChainSlug() == baseChainSlug) {
-                ISuperToken(order.srcToken).burn(order.srcUser, order.srcAmount);
+                IMultichainToken(order.srcToken).burn(order.srcUser, order.srcAmount);
                 IVault(vault).withdraw(order.srcAmount, order.dstUser);
             } else {
-                ISuperToken(order.srcToken).burn(order.srcUser, order.srcAmount);
-                ISuperToken(order.dstToken).mint(order.dstUser, order.srcAmount);
+                IMultichainToken(order.srcToken).burn(order.srcUser, order.srcAmount);
+                IMultichainToken(order.dstToken).mint(order.dstUser, order.srcAmount);
             }
         }
 

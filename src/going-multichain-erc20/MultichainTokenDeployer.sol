@@ -3,26 +3,26 @@ pragma solidity ^0.8.13;
 
 import "socket-protocol/contracts/base/AppDeployerBase.sol";
 import "solady/auth/Ownable.sol";
-import "./SuperToken.sol";
+import "./MultichainToken.sol";
 import "./Vault.sol";
 
 /**
- * @title SuperTokenDeployer
- * @notice A contract for deploying SuperToken across multiple chains
+ * @title MultichainTokenDeployer
+ * @notice A contract for deploying MultichainToken across multiple chains
  * @dev Extends AppDeployerBase and Ownable to provide cross-chain token deployment functionality
  */
-contract SuperTokenDeployer is AppDeployerBase, Ownable {
+contract MultichainTokenDeployer is AppDeployerBase, Ownable {
     /**
-     * @notice Unique identifier for the SuperToken contract
-     * @dev Used to track and manage the SuperToken contract across different chains
+     * @notice Unique identifier for the MultichainToken contract
+     * @dev Used to track and manage the MultichainToken contract across different chains
      */
-    bytes32 public immutable superToken = _createContractId("superToken");
+    bytes32 public immutable multichainToken = _createContractId("multichainToken");
     bytes32 public immutable vault = _createContractId("vault");
     uint32 public baseChainSlug;
     address public baseTokenAddress;
 
     /**
-     * @notice Constructor to initialize the SuperTokenDeployer
+     * @notice Constructor to initialize the MultichainTokenDeployer
      * @param baseChainSlug_ Chain ID of the original ERC20 already deployed
      * @param baseTokenAddress_ Token address of the original ERC20 already deployed
      * @param addressResolver Address of the address resolver contract
@@ -48,8 +48,8 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
 
         _initializeOwner(owner);
 
-        creationCodeWithArgs[superToken] =
-            abi.encodePacked(type(SuperToken).creationCode, abi.encode(name, symbol, decimals));
+        creationCodeWithArgs[multichainToken] =
+            abi.encodePacked(type(MultichainToken).creationCode, abi.encode(name, symbol, decimals));
 
         creationCodeWithArgs[vault] = abi.encodePacked(type(Vault).creationCode, abi.encode(owner, baseTokenAddress_));
 
@@ -57,9 +57,9 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
     }
 
     /**
-     * @notice Deploys the SuperToken contract on a specified chain
+     * @notice Deploys the MultichainToken contract on a specified chain
      * @param chainSlug The unique identifier of the target blockchain
-     * @dev Triggers the deployment of the SuperToken contract
+     * @dev Triggers the deployment of the MultichainToken contract
      * @custom:modifier Accessible to contract owner or authorized deployers
      */
     function deployContracts(uint32 chainSlug) external async {
@@ -67,7 +67,7 @@ contract SuperTokenDeployer is AppDeployerBase, Ownable {
             addressResolver.deployForwarderContract(address(this), baseTokenAddress, chainSlug);
             _deploy(vault, chainSlug);
         } else {
-            _deploy(superToken, chainSlug);
+            _deploy(multichainToken, chainSlug);
         }
     }
 
