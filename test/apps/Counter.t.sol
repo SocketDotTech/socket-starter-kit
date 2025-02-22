@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.21;
 
-import {CounterAppGateway} from "socket-protocol/contracts/apps/counter/CounterAppGateway.sol";
-import {CounterDeployer} from "socket-protocol/contracts/apps/counter/CounterDeployer.sol";
-import {Counter} from "socket-protocol/contracts/apps/counter/Counter.sol";
+import {CounterAppGateway} from "../../src/apps/counter/CounterAppGateway.sol";
+import {CounterDeployer} from "../../src/apps/counter/CounterDeployer.sol";
+import {Counter} from "../../src/apps/counter/Counter.sol";
 import "socket-protocol/test/DeliveryHelper.t.sol";
 
 contract CounterTest is DeliveryHelperTest {
@@ -19,12 +19,12 @@ contract CounterTest is DeliveryHelperTest {
         setUpDeliveryHelper();
 
         counterDeployer =
-            new CounterDeployer(address(addressResolver), address(auctionManager), FAST, createFeesData(feesAmount));
+            new CounterDeployer(address(addressResolver), address(auctionManager), FAST, createFees(feesAmount));
 
         counterGateway = new CounterAppGateway(
-            address(addressResolver), address(counterDeployer), address(auctionManager), createFeesData(feesAmount)
+            address(addressResolver), address(counterDeployer), address(auctionManager), createFees(feesAmount)
         );
-        setLimit(address(counterGateway));
+        depositFees(address(counterGateway), createFees(1 ether));
 
         counterId = counterDeployer.counter();
         contractIds[0] = counterId;
@@ -44,7 +44,7 @@ contract CounterTest is DeliveryHelperTest {
         assertEq(IForwarder(forwarder).getOnChainAddress(), onChain, "Forwarder onChainAddress should be correct");
     }
 
-    function testCounterIncrement() external {
+    function testCounterIncrement1() external {
         deploySetup();
         deployCounterApp(arbChainSlug);
 
@@ -61,7 +61,7 @@ contract CounterTest is DeliveryHelperTest {
         assertEq(Counter(arbCounter).counter(), arbCounterBefore + 1);
     }
 
-    function testCounterIncrementMultipleChains() external {
+    function testCounterIncrementMultipleChains() public {
         deploySetup();
         deployCounterApp(arbChainSlug);
         deployCounterApp(optChainSlug);
@@ -83,7 +83,37 @@ contract CounterTest is DeliveryHelperTest {
         chains[0] = arbChainSlug;
         chains[1] = optChainSlug;
         _executeWriteBatchMultiChain(chains);
+
         assertEq(Counter(arbCounter).counter(), arbCounterBefore + 1);
         assertEq(Counter(optCounter).counter(), optCounterBefore + 1);
+    }
+
+    function testCounterReadMultipleChains() external {
+        testCounterIncrementMultipleChains();
+
+        (address arbCounter, address arbCounterForwarder) =
+            getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterDeployer);
+        (address optCounter, address optCounterForwarder) =
+            getOnChainAndForwarderAddresses(optChainSlug, counterId, counterDeployer);
+
+        address[] memory instances = new address[](2);
+        instances[0] = arbCounterForwarder;
+        instances[1] = optCounterForwarder;
+
+        bytes32 bridgeAsyncId = getCurrentAsyncId();
+
+        bytes32[] memory payloadIds = new bytes32[](3);
+        payloadIds[0] = _encodeId(vmChainSlug, address(watcherPrecompile), payloadIdCounter++);
+        payloadIds[1] = _encodeId(vmChainSlug, address(watcherPrecompile), payloadIdCounter++);
+
+        payloadIds[2] =
+            getWritePayloadId(arbChainSlug, address(getSocketConfig(arbChainSlug).switchboard), payloadIdCounter++);
+
+        counterGateway.readCounters(instances);
+
+        bidAndEndAuction(bridgeAsyncId);
+        finalizeQuery(payloadIds[0], abi.encode(Counter(arbCounter).counter()));
+        finalizeQuery(payloadIds[1], abi.encode(Counter(optCounter).counter()));
+        finalizeAndExecute(payloadIds[2]);
     }
 }
