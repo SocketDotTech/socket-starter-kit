@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
+const chainId = 43;
 // Read script name from command-line arguments
 const scriptName = process.argv[2]; // The argument passed to the script
 if (!scriptName) {
@@ -13,7 +14,7 @@ if (!scriptName) {
 const jsonFilePath = path.join(
   'broadcast',
   `${scriptName}.s.sol`,
-  '43',
+  `${chainId}`,
   'run-latest.json'
 );
 
@@ -111,7 +112,7 @@ const checkTransactionStatus = async () => {
           console.log(`OnChainAddress: ${deployerDetails.onChainAddress}`);
           console.log(`ForwarderAddress: ${deployerDetails.forwarderAddress}`);
         } else {
-          console.log(`Hash: ${tx.hash}, Status: ${status}, ChainId: 7625382`);
+          console.log(`Hash: ${tx.hash}, Status: ${status}, ChainId: ${chainId}`);
         }
 
         tx.printed = true;
