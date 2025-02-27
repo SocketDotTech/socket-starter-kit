@@ -13,7 +13,7 @@ if (!scriptName) {
 const jsonFilePath = path.join(
   'broadcast',
   `${scriptName}.s.sol`,
-  '7625382',
+  '43',
   'run-latest.json'
 );
 

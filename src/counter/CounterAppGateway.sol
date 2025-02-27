@@ -15,14 +15,12 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
 
     uint256 arbCounter;
     uint256 optCounter;
+
     event TimeoutResolved(uint256 creationTimestamp, uint256 executionTimestamp);
 
-    constructor(
-        address addressResolver_,
-        address auctionManager_,
-        bytes32 sbType_,
-        Fees memory fees_
-    ) AppGatewayBase(addressResolver_, auctionManager_, sbType_) {
+    constructor(address addressResolver_, address auctionManager_, bytes32 sbType_, Fees memory fees_)
+        AppGatewayBase(addressResolver_, auctionManager_, sbType_)
+    {
         creationCodeWithArgs[counter] = abi.encodePacked(type(Counter).creationCode);
         creationCodeWithArgs[counter1] = abi.encodePacked(type(Counter).creationCode);
         _setOverrides(fees_);
@@ -97,22 +95,14 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
         watcherPrecompile__().setIsValidPlug(chainSlug_, plug_, true);
     }
 
-    function callFromChain(
-        uint32,
-        address,
-        bytes calldata payload_,
-        bytes32
-    ) external override onlyWatcherPrecompile {
+    function callFromChain(uint32, address, bytes calldata payload_, bytes32) external override onlyWatcherPrecompile {
         uint256 value = abi.decode(payload_, (uint256));
         counterVal += value;
     }
 
     // TIMEOUT
     function setTimeout(uint256 delayInSeconds_) public {
-        bytes memory payload = abi.encodeWithSelector(
-            this.resolveTimeout.selector,
-            block.timestamp
-        );
+        bytes memory payload = abi.encodeWithSelector(this.resolveTimeout.selector, block.timestamp);
         watcherPrecompile__().setTimeout(address(this), payload, delayInSeconds_);
     }
 
@@ -125,12 +115,7 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
         fees = fees_;
     }
 
-    function withdrawFeeTokens(
-        uint32 chainSlug_,
-        address token_,
-        uint256 amount_,
-        address receiver_
-    ) external {
+    function withdrawFeeTokens(uint32 chainSlug_, address token_, uint256 amount_, address receiver_) external {
         _withdrawFeeTokens(chainSlug_, token_, amount_, receiver_);
     }
 }
