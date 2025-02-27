@@ -3,18 +3,21 @@ pragma solidity ^0.8.0;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {FeesManager} from "socket-protocol/contracts/protocol/payload-delivery/app-gateway/FeesManager.sol";
+import {FeesManager} from "socket-protocol/contracts/protocol/payload-delivery/FeesManager.sol";
 import {ETH_ADDRESS} from "socket-protocol/contracts/protocol/utils/common/Constants.sol";
-import {CounterAppGateway} from "../../src/apps/counter/CounterAppGateway.sol";
 
+import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
+
+// @notice This script is used to withdraw fees from EVMX to Arbitrum Sepolia
+// @dev Make sure your app has withdrawFeeTokens() function implemented. You can check its implementation in CounterAppGateway.sol
 contract WithdrawFees is Script {
     function run() external {
         // EVMX Check available fees
         vm.createSelectFork(vm.envString("EVMX_RPC"));
         FeesManager feesManager = FeesManager(payable(vm.envAddress("FEES_MANAGER")));
         address appGatewayAddress = vm.envAddress("APP_GATEWAY");
-        CounterAppGateway appGateway = CounterAppGateway(appGatewayAddress);
 
+        CounterAppGateway appGateway = CounterAppGateway(appGatewayAddress);
         uint256 availableFees = feesManager.getAvailableFees(421614, appGatewayAddress, ETH_ADDRESS);
         console.log("Available fees:", availableFees);
 

@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.21;
 
-import {CounterAppGateway} from "../../src/apps/counter/CounterAppGateway.sol";
-import {CounterDeployer} from "../../src/apps/counter/CounterDeployer.sol";
-import {Counter} from "../../src/apps/counter/Counter.sol";
+import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
+import {Counter} from "../../src/counter/Counter.sol";
 import "socket-protocol/test/DeliveryHelper.t.sol";
 
 contract CounterTest is DeliveryHelperTest {
@@ -13,43 +12,38 @@ contract CounterTest is DeliveryHelperTest {
     bytes32[] contractIds = new bytes32[](1);
 
     CounterAppGateway counterGateway;
-    CounterDeployer counterDeployer;
 
     function deploySetup() internal {
         setUpDeliveryHelper();
 
-        counterDeployer =
-            new CounterDeployer(address(addressResolver), address(auctionManager), FAST, createFees(feesAmount));
-
-        counterGateway = new CounterAppGateway(
-            address(addressResolver), address(counterDeployer), address(auctionManager), createFees(feesAmount)
-        );
+        counterGateway =
+            new CounterAppGateway(address(addressResolver), address(auctionManager), FAST, createFees(feesAmount));
         depositFees(address(counterGateway), createFees(1 ether));
 
-        counterId = counterDeployer.counter();
+        counterId = counterGateway.counter();
         contractIds[0] = counterId;
     }
 
     function deployCounterApp(uint32 chainSlug) internal returns (bytes32 asyncId) {
-        asyncId = _deploy(contractIds, chainSlug, 1, IAppDeployer(counterDeployer), address(counterGateway));
+        asyncId = _deploy(contractIds, chainSlug, 1, IAppGateway(counterGateway));
     }
 
     function testCounterDeployment() external {
         deploySetup();
         deployCounterApp(arbChainSlug);
 
-        (address onChain, address forwarder) = getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterDeployer);
+        (address onChain, address forwarder) = getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterGateway);
 
         assertEq(IForwarder(forwarder).getChainSlug(), arbChainSlug, "Forwarder chainSlug should be correct");
         assertEq(IForwarder(forwarder).getOnChainAddress(), onChain, "Forwarder onChainAddress should be correct");
     }
 
-    function testCounterIncrement1() external {
+    function testCounterIncrement() external {
         deploySetup();
         deployCounterApp(arbChainSlug);
 
         (address arbCounter, address arbCounterForwarder) =
-            getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterDeployer);
+            getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterGateway);
 
         uint256 arbCounterBefore = Counter(arbCounter).counter();
 
@@ -67,9 +61,9 @@ contract CounterTest is DeliveryHelperTest {
         deployCounterApp(optChainSlug);
 
         (address arbCounter, address arbCounterForwarder) =
-            getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterDeployer);
+            getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterGateway);
         (address optCounter, address optCounterForwarder) =
-            getOnChainAndForwarderAddresses(optChainSlug, counterId, counterDeployer);
+            getOnChainAndForwarderAddresses(optChainSlug, counterId, counterGateway);
 
         uint256 arbCounterBefore = Counter(arbCounter).counter();
         uint256 optCounterBefore = Counter(optCounter).counter();
@@ -92,19 +86,19 @@ contract CounterTest is DeliveryHelperTest {
         testCounterIncrementMultipleChains();
 
         (address arbCounter, address arbCounterForwarder) =
-            getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterDeployer);
+            getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterGateway);
         (address optCounter, address optCounterForwarder) =
-            getOnChainAndForwarderAddresses(optChainSlug, counterId, counterDeployer);
+            getOnChainAndForwarderAddresses(optChainSlug, counterId, counterGateway);
 
         address[] memory instances = new address[](2);
         instances[0] = arbCounterForwarder;
         instances[1] = optCounterForwarder;
 
-        bytes32 bridgeAsyncId = getCurrentAsyncId();
+        bytes32 bridgeAsyncId = getNextAsyncId();
 
         bytes32[] memory payloadIds = new bytes32[](3);
-        payloadIds[0] = _encodeId(vmChainSlug, address(watcherPrecompile), payloadIdCounter++);
-        payloadIds[1] = _encodeId(vmChainSlug, address(watcherPrecompile), payloadIdCounter++);
+        payloadIds[0] = _encodeId(evmxSlug, address(watcherPrecompile), payloadIdCounter++);
+        payloadIds[1] = _encodeId(evmxSlug, address(watcherPrecompile), payloadIdCounter++);
 
         payloadIds[2] =
             getWritePayloadId(arbChainSlug, address(getSocketConfig(arbChainSlug).switchboard), payloadIdCounter++);
