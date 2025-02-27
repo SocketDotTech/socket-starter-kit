@@ -97,17 +97,17 @@ const checkTransactionStatus = async () => {
 
       const transactionResponse = data.response[0]; // First response object
       const status = transactionResponse.status || 'UNKNOWN';
-      const payloads = transactionResponse.payloads || [];
+      const writePayloads = transactionResponse.writePayloads || [];
 
       // Update tracker
       tx.status = status;
       if (status === 'COMPLETED' && !tx.printed) {
-        processMultiplePayloads(payloads, tx);
+        processMultiplePayloads(writePayloads, tx);
 
-        const deployerDetails = payloads[0].deployerDetails || {};
+        const deployerDetails = writePayloads[0].deployerDetails || {};
 
         if (Object.keys(deployerDetails).length !== 0) {
-          console.log(`Hash: ${tx.hash}, Status: ${status}, ChainId: ${payloads[0].chainSlug}`);
+          console.log(`Hash: ${tx.hash}, Status: ${status}, ChainId: ${writePayloads[0].chainSlug}`);
           console.log(`OnChainAddress: ${deployerDetails.onChainAddress}`);
           console.log(`ForwarderAddress: ${deployerDetails.forwarderAddress}`);
         } else {
@@ -117,7 +117,7 @@ const checkTransactionStatus = async () => {
         tx.printed = true;
       }
       else if (status === 'IN_PROGRESS') {
-        processMultiplePayloads(payloads, tx);
+        processMultiplePayloads(writePayloads, tx);
       }
     } else {
       console.error(`Invalid or empty response for hash: ${tx.hash}`);
