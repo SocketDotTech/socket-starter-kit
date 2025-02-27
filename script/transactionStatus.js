@@ -30,7 +30,7 @@ const jsonData = JSON.parse(fs.readFileSync(jsonFilePath, 'utf-8'));
 const transactions = jsonData.transactions.map(tx => tx.hash);
 console.log(`Found ${transactions.length} transactions to process.`);
 
-const apiUrl = 'https://apiv2.dev.socket.tech/getDetailsByTxHash?txHash=';
+const apiUrl = ' https://api-evmx-devnet.socket.tech/getDetailsByTxHash?txHash=';
 let intervalId;
 
 // Track statuses for each hash
