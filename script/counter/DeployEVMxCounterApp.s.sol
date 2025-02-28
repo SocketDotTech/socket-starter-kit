@@ -19,7 +19,10 @@ contract CounterDeploy is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Setting fee payment on Arbitrum Sepolia
-        Fees memory fees = Fees({feePoolChain: 421614, feePoolToken: ETH_ADDRESS, amount: 0.001 ether});
+        // amount: Minimum fee required in contract and maximum user is willing to pay
+        // User must have deposited >= amount, ensuring transmitter gets compensated for including this tx in a batch
+        // Current Counter example costs 0.000105 eth
+        Fees memory fees = Fees({feePoolChain: 421614, feePoolToken: ETH_ADDRESS, amount: 0.0005 ether});
 
         CounterAppGateway gateway = new CounterAppGateway(addressResolver, auctionManager, FAST, fees);
 
