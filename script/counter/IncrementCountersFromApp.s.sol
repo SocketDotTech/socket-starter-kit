@@ -46,7 +46,11 @@ contract IncrementCounters is Script {
             console.log("Base Sepolia forwarder not yet deployed");
         }
 
-        vm.startBroadcast(deployerPrivateKey);
-        gateway.incrementCounters(instances);
+        if (instances.length > 0) {
+            vm.startBroadcast(deployerPrivateKey);
+            gateway.incrementCounters(instances);
+        } else {
+            console.log("No forwarder addresses found");
+        }
     }
 }
