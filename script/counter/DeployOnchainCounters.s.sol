@@ -25,6 +25,6 @@ contract CounterDeployOnchain is Script {
         console.log("Deploying contracts on Optimism Sepolia...");
         appGateway.deployContracts(11155420);
         console.log("Deploying contracts on Base Sepolia...");
-        appGateway.deployContracts(84534);
+        appGateway.deployContracts(84532);
     }
 }
