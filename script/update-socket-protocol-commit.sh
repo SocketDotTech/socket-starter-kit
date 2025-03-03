@@ -12,7 +12,7 @@ rm -rf .git/modules/lib/socket-protocol
 git rm -rf lib/socket-protocol
 
 # Re-add the submodule
-git submodule add -b staging https://github.com/SocketDotTech/socket-protocol.git lib/socket-protocol
+git submodule add -b master https://github.com/SocketDotTech/socket-protocol.git lib/socket-protocol
 git submodule update --init --recursive
 
 # Commit the update
