@@ -111,6 +111,10 @@ const checkTransactionStatus = async () => {
           console.log(`Hash: ${tx.hash}, Status: ${status}, ChainId: ${writePayloads[0].chainSlug}`);
           console.log(`OnChainAddress: ${deployerDetails.onChainAddress}`);
           console.log(`ForwarderAddress: ${deployerDetails.forwarderAddress}`);
+          if (deployerDetails.isForwarderDeployed !== true) {
+            console.error(`ERROR: ForwarderAddress NOT deployed. Please reach out to the SOCKET team.`);
+            process.exit(1);
+          }
         } else {
           console.log(`Hash: ${tx.hash}, Status: ${status}, ChainId: ${chainId}`);
         }
