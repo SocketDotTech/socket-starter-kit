@@ -23,5 +23,6 @@ contract DepositFees is Script {
 
         uint256 feesAmount = 0.001 ether;
         feesPlug.deposit{value: feesAmount}(ETH_ADDRESS, appGateway, feesAmount);
+        console.log("Added %s wei for AppGateway %s", feesAmount, appGateway);
     }
 }
