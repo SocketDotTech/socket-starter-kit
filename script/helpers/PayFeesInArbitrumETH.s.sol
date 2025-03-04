@@ -17,12 +17,12 @@ contract DepositFees is Script {
         address appGateway = vm.envAddress("APP_GATEWAY");
 
         address sender = vm.addr(privateKey);
-        console.log("Sender address:", sender);
         uint256 balance = sender.balance;
-        console.log("Sender balance in wei:", balance);
+        console.log("Using address %s with %s balance in wei", sender, balance);
 
         uint256 feesAmount = 0.001 ether;
+        console.log("Depositing 0.001 ether on Arbitrum FeesPlug %s", address(feesPlug));
         feesPlug.deposit{value: feesAmount}(ETH_ADDRESS, appGateway, feesAmount);
-        console.log("Added %s wei for AppGateway %s", feesAmount, appGateway);
+        console.log("Added fee balance for AppGateway %s", feesAmount, appGateway);
     }
 }

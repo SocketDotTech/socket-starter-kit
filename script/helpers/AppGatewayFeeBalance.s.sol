@@ -15,10 +15,10 @@ contract CheckDepositedFees is Script {
 
         (uint256 deposited, uint256 blocked) = feesManager.appGatewayFeeBalances(appGateway, 421614, ETH_ADDRESS);
         console.log("AppGateway:", appGateway);
-        console.log("Deposited fees:", deposited);
-        console.log("Blocked fees:", blocked);
+        console.log("Total balance of available fees for this AppGateway: %s", deposited);
+        console.log("Fees being locked due to existing transactions: %s", blocked);
 
         uint256 availableFees = feesManager.getAvailableFees(421614, appGateway, ETH_ADDRESS);
-        console.log("Available fees:", availableFees);
+        console.log("Fees available to be spent on transactions: %s", availableFees);
     }
 }

@@ -10,7 +10,6 @@ import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 contract CounterDeployOnchain is Script {
     function run() external {
         string memory rpc = vm.envString("EVMX_RPC");
-        console.log(rpc);
         vm.createSelectFork(rpc);
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
