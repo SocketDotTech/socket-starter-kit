@@ -25,9 +25,6 @@ contract CounterDeploy is Script {
 
         CounterAppGateway gateway = new CounterAppGateway(addressResolver, fees);
 
-        console.log("Contracts deployed:");
-        console.log("CounterAppGateway:", address(gateway));
-        console.log("counterId:");
-        console.logBytes32(gateway.counter());
+        console.log("CounterAppGateway contract:", address(gateway));
     }
 }
