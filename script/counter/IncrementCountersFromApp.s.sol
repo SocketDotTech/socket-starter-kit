@@ -16,6 +16,8 @@ contract IncrementCounters is Script {
         CounterAppGateway appGateway = CounterAppGateway(vm.envAddress("APP_GATEWAY"));
         console.log("See AppGateway on EVMx: https://evmx.cloud.blockscout.com/address/%s", address(appGateway));
 
+        // Read https://docs.socket.tech/forwarder-addresses to learn more about
+        // how forwarder addresses are assigned on the EVMx to represent onchain contracts
         address counterForwarderArbitrumSepolia = appGateway.forwarderAddresses(appGateway.counter(), 421614);
         address counterForwarderOptimismSepolia = appGateway.forwarderAddresses(appGateway.counter(), 11155420);
         address counterForwarderBaseSepolia = appGateway.forwarderAddresses(appGateway.counter(), 84532);
