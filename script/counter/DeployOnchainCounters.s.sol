@@ -18,6 +18,7 @@ contract CounterDeployOnchain is Script {
         CounterAppGateway appGateway = CounterAppGateway(vm.envAddress("APP_GATEWAY"));
 
         console.log("Counter Gateway:", address(appGateway));
+        console.log("See AppGateway on EVMx: https://evmx.cloud.blockscout.com/address/%s", address(appGateway));
 
         console.log("Deploying contracts on Arbitrum Sepolia...");
         appGateway.deployContracts(421614);

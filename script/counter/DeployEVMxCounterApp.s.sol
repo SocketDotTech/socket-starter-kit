@@ -23,8 +23,9 @@ contract CounterDeploy is Script {
         // Current Counter example costs 0.000105 eth
         Fees memory fees = Fees({feePoolChain: 421614, feePoolToken: ETH_ADDRESS, amount: 0.0005 ether});
 
-        CounterAppGateway gateway = new CounterAppGateway(addressResolver, fees);
+        CounterAppGateway appGateway = new CounterAppGateway(addressResolver, fees);
 
-        console.log("CounterAppGateway contract:", address(gateway));
+        console.log("CounterAppGateway contract:", address(appGateway));
+        console.log("See AppGateway on EVMx: https://evmx.cloud.blockscout.com/address/%s", address(appGateway));
     }
 }
