@@ -13,11 +13,14 @@ contract IncrementCounters is Script {
 
         vm.createSelectFork(socketRPC);
 
-        CounterAppGateway gateway = CounterAppGateway(vm.envAddress("APP_GATEWAY"));
+        CounterAppGateway appGateway = CounterAppGateway(vm.envAddress("APP_GATEWAY"));
+        console.log("See AppGateway on EVMx: https://evmx.cloud.blockscout.com/address/%s", address(appGateway));
 
-        address counterForwarderArbitrumSepolia = gateway.forwarderAddresses(gateway.counter(), 421614);
-        address counterForwarderOptimismSepolia = gateway.forwarderAddresses(gateway.counter(), 11155420);
-        address counterForwarderBaseSepolia = gateway.forwarderAddresses(gateway.counter(), 84532);
+        // Read https://docs.socket.tech/forwarder-addresses to learn more about
+        // how forwarder addresses are assigned on the EVMx to represent onchain contracts
+        address counterForwarderArbitrumSepolia = appGateway.forwarderAddresses(appGateway.counter(), 421614);
+        address counterForwarderOptimismSepolia = appGateway.forwarderAddresses(appGateway.counter(), 11155420);
+        address counterForwarderBaseSepolia = appGateway.forwarderAddresses(appGateway.counter(), 84532);
 
         // Count non-zero addresses
         uint256 nonZeroCount = 0;
@@ -48,7 +51,7 @@ contract IncrementCounters is Script {
 
         if (instances.length > 0) {
             vm.startBroadcast(deployerPrivateKey);
-            gateway.incrementCounters(instances);
+            appGateway.incrementCounters(instances);
         } else {
             console.log("No forwarder addresses found");
         }

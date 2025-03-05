@@ -1,14 +1,54 @@
 const fs = require('fs');
 const path = require('path');
 
+// Help function to display usage instructions
+const displayHelp = () => {
+  console.log(`
+Transaction Status Checker for Forge Scripts
+
+Usage: node script/transactionStatus.js <scriptName> [--help]
+
+Arguments:
+  <scriptName>    The name of the Forge script without file extension
+                  This should match the script you ran with forge
+
+Options:
+  --help          Display this help message
+
+Examples:
+  1. Deploying Counters:
+     # First, run the Forge script
+     forge script script/counter/DeployOnchainCounters.s.sol \\
+       --broadcast --skip-simulation --legacy --with-gas-price 0
+
+     # Then check transaction status
+     node script/transactionStatus.js DeployOnchainCounters
+
+  2. Incrementing Counters:
+     # First, run the Forge script
+     forge script script/counter/IncrementCountersFromApp.s.sol \\
+       --broadcast --skip-simulation --legacy --with-gas-price 0
+
+     # Then check transaction status
+     node script/transactionStatus.js IncrementCountersFromApp
+
+Notes:
+  - Ensure you have run the Forge script with --broadcast before
+    running this transaction status checker
+  - The script checks transaction statuses from the latest
+    broadcast run for the specified script
+`);
+  process.exit(0);
+};
+
+// Check for help flag or no arguments
+if (process.argv.length < 3 || process.argv[2] === '--help') {
+  displayHelp();
+}
+
 const chainId = 43;
 // Read script name from command-line arguments
 const scriptName = process.argv[2]; // The argument passed to the script
-if (!scriptName) {
-  console.error('Usage: node checkTransactions.js <scriptName>');
-  console.error('Example: node checkTransactions.js deployOnchain');
-  process.exit(1);
-}
 
 // Construct the JSON file path dynamically
 const jsonFilePath = path.join(
@@ -21,6 +61,8 @@ const jsonFilePath = path.join(
 // Validate that the file exists
 if (!fs.existsSync(jsonFilePath)) {
   console.error(`Error: File not found at path '${jsonFilePath}'.`);
+  console.error('Ensure you have run the Forge script with --broadcast');
+  console.error('Use --help for more information');
   process.exit(1);
 }
 
@@ -135,6 +177,7 @@ const checkTransactionStatus = async () => {
   // Stop script and print final message if all transactions are COMPLETED
   if (allCompleted && !allDonePrinted) {
     console.log('All transactions are COMPLETED. Stopping script.');
+    console.log('Learn more about the what the status means here: https://docs.socket.tech/api#executionstatus-values')
     allDonePrinted = true; // Prevent duplicate final messages
     clearInterval(intervalId);
   }
