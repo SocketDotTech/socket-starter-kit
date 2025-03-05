@@ -177,6 +177,7 @@ const checkTransactionStatus = async () => {
   // Stop script and print final message if all transactions are COMPLETED
   if (allCompleted && !allDonePrinted) {
     console.log('All transactions are COMPLETED. Stopping script.');
+    console.log('Learn more about the what the status means here: https://docs.socket.tech/api#executionstatus-values')
     allDonePrinted = true; // Prevent duplicate final messages
     clearInterval(intervalId);
   }
