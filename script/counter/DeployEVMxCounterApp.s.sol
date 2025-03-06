@@ -8,6 +8,20 @@ import {ETH_ADDRESS} from "socket-protocol/contracts/protocol/utils/common/Const
 
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 
+/**
+ * @title CounterDeploy Script
+ * @notice Deploys the CounterAppGateway contract to the EVMx network
+ * @dev This script:
+ *      1. Connects to the EVMx network using the provided RPC URL
+ *      2. Sets up fee payment configuration for Arbitrum Sepolia
+ *      3. Deploys the CounterAppGateway contract
+ *      4. Outputs the contract address for further interaction
+ *
+ *      Required environment variables:
+ *      - ADDRESS_RESOLVER: Address of SOCKET Protocol's AddressResolver
+ *      - EVMX_RPC: RPC URL for the EVMx network
+ *      - PRIVATE_KEY: Private key of the deployer account
+ */
 contract CounterDeploy is Script {
     function run() external {
         address addressResolver = vm.envAddress("ADDRESS_RESOLVER");

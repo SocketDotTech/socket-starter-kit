@@ -8,8 +8,27 @@ import {ETH_ADDRESS} from "socket-protocol/contracts/protocol/utils/common/Const
 
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 
-// @notice This script is used to withdraw fees from EVMX to Arbitrum Sepolia
-// @dev Make sure your app has withdrawFeeTokens() function implemented. You can check its implementation in CounterAppGateway.sol
+/**
+ * @title WithdrawFees Script
+ * @notice Withdraws accumulated fees from EVMX to Arbitrum Sepolia
+ * @dev This script:
+ *      1. Checks available fees on EVMX
+ *      2. Switches to Arbitrum Sepolia to estimate gas costs
+ *      3. Calculates a safe amount to withdraw (fees minus estimated gas costs)
+ *      4. Performs the withdrawal if the amount is positive
+ *      5. Verifies final balance on Arbitrum Sepolia
+ *
+ *      This demonstrates how developers can retrieve fees that their application has earned
+ *      through Socket Protocol's fee system.
+ *
+ *      Required environment variables:
+ *      - EVMX_RPC: RPC URL for the EVMx network
+ *      - ARBITRUM_SEPOLIA_RPC: RPC URL for Arbitrum Sepolia
+ *      - PRIVATE_KEY: Private key of the deployer account
+ *      - FEES_MANAGER: Address of Socket Protocol's FeesManager contract
+ *      - APP_GATEWAY: Address of the deployed CounterAppGateway
+ * @notice Ensure your app has withdrawFeeTokens() function implemented. You can check its implementation in CounterAppGateway.sol
+ */
 contract WithdrawFees is Script {
     function run() external {
         // EVMX Check available fees
