@@ -13,10 +13,13 @@ contract CheckCounters is Script {
         console.log("See AppGateway on EVMx: https://evmx.cloud.blockscout.com/address/%s", address(appGateway));
 
         vm.createSelectFork(vm.envString("EVMX_RPC"));
+        // From your AppGateway you can retrieve a contract's onchain address that is used by your AppGateway
+        // The input arguments are the bytes32 contract id as well as the uint32 chain id
         address counterInstanceArbitrumSepolia = appGateway.getOnChainAddress(appGateway.counter(), 421614);
         address counterInstanceOptimismSepolia = appGateway.getOnChainAddress(appGateway.counter(), 11155420);
         address counterInstanceBaseSepolia = appGateway.getOnChainAddress(appGateway.counter(), 84532);
 
+        // If there is no onchain address associated with the input params it will return the zero address
         if (counterInstanceArbitrumSepolia != address(0)) {
             vm.createSelectFork(vm.envString("ARBITRUM_SEPOLIA_RPC"));
             uint256 counterValueArbitrumSepolia = Counter(counterInstanceArbitrumSepolia).counter();

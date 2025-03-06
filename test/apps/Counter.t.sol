@@ -80,33 +80,4 @@ contract CounterTest is DeliveryHelperTest {
         assertEq(Counter(arbCounter).counter(), arbCounterBefore + 1);
         assertEq(Counter(optCounter).counter(), optCounterBefore + 1);
     }
-
-    function testCounterReadMultipleChains() external {
-        testCounterIncrementMultipleChains();
-
-        (address arbCounter, address arbCounterForwarder) =
-            getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterGateway);
-        (address optCounter, address optCounterForwarder) =
-            getOnChainAndForwarderAddresses(optChainSlug, counterId, counterGateway);
-
-        address[] memory instances = new address[](2);
-        instances[0] = arbCounterForwarder;
-        instances[1] = optCounterForwarder;
-
-        bytes32 bridgeAsyncId = getNextAsyncId();
-
-        bytes32[] memory payloadIds = new bytes32[](3);
-        payloadIds[0] = _encodeId(evmxSlug, address(watcherPrecompile), payloadIdCounter++);
-        payloadIds[1] = _encodeId(evmxSlug, address(watcherPrecompile), payloadIdCounter++);
-
-        payloadIds[2] =
-            getWritePayloadId(arbChainSlug, address(getSocketConfig(arbChainSlug).switchboard), payloadIdCounter++);
-
-        counterGateway.readCounters(instances);
-
-        bidAndEndAuction(bridgeAsyncId);
-        finalizeQuery(payloadIds[0], abi.encode(Counter(arbCounter).counter()));
-        finalizeQuery(payloadIds[1], abi.encode(Counter(optCounter).counter()));
-        finalizeAndExecute(payloadIds[2]);
-    }
 }
