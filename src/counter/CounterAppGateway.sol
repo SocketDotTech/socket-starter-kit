@@ -23,7 +23,9 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
     /**
      * @notice Constructs the CounterAppGateway
      * @dev Sets up the creation code for the Counter contract, configures fee overrides,
-     * and initializes ownership
+     * and initializes ownership.
+     * For more information on how contract bytecode is stored in the AppGateway, see:
+     * https://docs.socket.tech/writing-apps#onchain-contract-bytecode-stored-in-the-appgateway-contract
      * @param addressResolver_ Address of the SOCKET Protocol's AddressResolver contract
      * @param fees_ Fee configuration for multi-chain operations
      */
@@ -35,7 +37,9 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
 
     /**
      * @notice Deploys Counter contracts to a specified chain
-     * @dev Triggers an asynchronous multi-chain deployment via SOCKET Protocol
+     * @dev Triggers an asynchronous multi-chain deployment via SOCKET Protocol.
+     * For more information on onchain contract deployment with the AppGateway, see:
+     * https://docs.socket.tech/writing-apps#onchain-contract-deployment-with-the-appgateway-contract
      * @param chainSlug_ The identifier of the target chain
      */
     function deployContracts(uint32 chainSlug_) external async {
@@ -46,6 +50,8 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * @notice Initialize function required by AppGatewayBase
      * @dev No initialization needed for this application, so implementation is empty.
      *      The chainSlug parameter is required by the interface but not used.
+     *      For more information on the initialize function, see:
+     *      https://docs.socket.tech/deploy#initialize
      */
     function initialize(uint32 /* chainSlug_ */ ) public pure override {
         return;
