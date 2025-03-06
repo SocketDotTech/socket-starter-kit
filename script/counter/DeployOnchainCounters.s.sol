@@ -7,6 +7,22 @@ import {ETH_ADDRESS} from "socket-protocol/contracts/protocol/utils/common/Const
 
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 
+/**
+ * @title CounterDeployOnchain Script
+ * @notice Deploys Counter contracts to multiple target chains through the AppGateway
+ * @dev This script:
+ *      1. Connects to the EVMx network
+ *      2. Retrieves the previously deployed AppGateway contract
+ *      3. Deploys Counter contracts to Arbitrum Sepolia, Optimism Sepolia, and Base Sepolia chains
+ *
+ *      This is the second step, after adding fees, in the deployment process after the AppGateway has been deployed.
+ *      Each deployment creates a new Counter contract instance on the target chain.
+ *
+ *      Required environment variables:
+ *      - EVMX_RPC: RPC URL for the EVMx network
+ *      - PRIVATE_KEY: Private key of the deployer account
+ *      - APP_GATEWAY: Address of the previously deployed CounterAppGateway
+ */
 contract CounterDeployOnchain is Script {
     function run() external {
         string memory rpc = vm.envString("EVMX_RPC");

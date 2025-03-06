@@ -9,7 +9,7 @@ import "./ICounter.sol";
 
 /**
  * @title CounterAppGateway
- * @dev Gateway contract for the Counter application that manages cross-chain counter contract deployments
+ * @dev Gateway contract for the Counter application that manages multi-chain counter contract deployments
  * and interactions through SOCKET Protocol.
  * Inherits from AppGatewayBase for SOCKET Protocol integration and Ownable for access control.
  */

@@ -7,6 +7,25 @@ import {console} from "forge-std/console.sol";
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 import {Counter} from "../../src/counter/Counter.sol";
 
+/**
+ * @title CheckCounters Script
+ * @notice Reads the current counter values from deployed Counter contracts across multiple chains
+ * @dev This script:
+ *      1. Retrieves the deployed CounterAppGateway
+ *      2. Gets the onchain addresses of Counter contracts deployed on different chains
+ *      3. Connects to each chain and reads the current counter value
+ *      4. Outputs the counter values and blockchain explorer links
+ *
+ *      This demonstrates how to retrieve and read state from contracts deployed through
+ *      Socket Protocol across multiple chains.
+ *
+ *      Required environment variables:
+ *      - APP_GATEWAY: Address of the deployed CounterAppGateway
+ *      - EVMX_RPC: RPC URL for the EVMx network
+ *      - ARBITRUM_SEPOLIA_RPC: RPC URL for Arbitrum Sepolia
+ *      - OPTIMISM_SEPOLIA_RPC: RPC URL for Optimism Sepolia
+ *      - BASE_SEPOLIA_RPC: RPC URL for Base Sepolia
+ */
 contract CheckCounters is Script {
     function run() external {
         CounterAppGateway appGateway = CounterAppGateway(vm.envAddress("APP_GATEWAY"));

@@ -6,6 +6,23 @@ import {console} from "forge-std/console.sol";
 
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 
+/**
+ * @title IncrementCounters Script
+ * @notice Increments counters across multiple chains through the AppGateway
+ * @dev This script:
+ *      1. Connects to the EVMx network
+ *      2. Retrieves the deployed CounterAppGateway
+ *      3. Gets the forwarder addresses for each deployed Counter contract on different chains
+ *      4. Calls incrementCounters to increment all non-zero counter instances
+ *
+ *      This demonstrates chain-abstracted interaction where a single transaction on EVMx
+ *      can update state on multiple other chains through SOCKET Protocol.
+ *
+ *      Required environment variables:
+ *      - EVMX_RPC: RPC URL for the EVMx network
+ *      - PRIVATE_KEY: Private key of the deployer account
+ *      - APP_GATEWAY: Address of the deployed CounterAppGateway
+ */
 contract IncrementCounters is Script {
     function run() external {
         string memory socketRPC = vm.envString("EVMX_RPC");
