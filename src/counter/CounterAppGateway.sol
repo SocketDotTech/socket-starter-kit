@@ -44,10 +44,10 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
 
     /**
      * @notice Initialize function required by AppGatewayBase
-     * @dev No initialization needed for this application, so implementation is empty
-     * @param An unused parameter to match the override
+     * @dev No initialization needed for this application, so implementation is empty.
+     *      The chainSlug parameter is required by the interface but not used.
      */
-    function initialize(uint32 chainId) public pure override {
+    function initialize(uint32 /* chainSlug_ */ ) public pure override {
         return;
     }
 
