@@ -23,8 +23,8 @@ contract CounterTest is DeliveryHelperTest {
         contractIds[0] = counterId;
     }
 
-    function deployCounterApp(uint32 chainSlug) internal returns (bytes32 asyncId) {
-        asyncId = _deploy(contractIds, chainSlug, 1, IAppGateway(counterGateway));
+    function deployCounterApp(uint32 chainSlug) internal returns (uint40 requestCount) {
+        requestCount = _deploy(chainSlug, IAppGateway(counterGateway), contractIds);
     }
 
     function testCounterDeployment() external {
@@ -49,8 +49,8 @@ contract CounterTest is DeliveryHelperTest {
         address[] memory instances = new address[](1);
         instances[0] = arbCounterForwarder;
         counterGateway.incrementCounters(instances);
+        executeRequest(new bytes[](0));
 
-        _executeWriteBatchSingleChain(arbChainSlug, 1);
         assertEq(Counter(arbCounter).counter(), arbCounterBefore + 1);
     }
 
@@ -75,8 +75,8 @@ contract CounterTest is DeliveryHelperTest {
         uint32[] memory chains = new uint32[](2);
         chains[0] = arbChainSlug;
         chains[1] = optChainSlug;
-        _executeWriteBatchMultiChain(chains);
 
+        executeRequest(new bytes[](0));
         assertEq(Counter(arbCounter).counter(), arbCounterBefore + 1);
         assertEq(Counter(optCounter).counter(), optCounterBefore + 1);
     }
