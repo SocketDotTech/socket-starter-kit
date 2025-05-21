@@ -21,14 +21,16 @@ contract DepositFees is Script {
         vm.startBroadcast(privateKey);
         // mint test USDC to sender
         testUSDCContract.mint(sender, feesAmount);
+        console.log("Minting 100 TestUSDC to %s", sender);
         // approve fees plug to spend test USDC
         testUSDCContract.approve(address(feesPlug), feesAmount);
 
         uint256 balance = testUSDCContract.balanceOf(sender);
-        console.log("Using address %s with %s balance in wei", sender, balance);
+        console.log("Using address %s with %s TestUSDC balance in wei", sender, balance);
 
         console.log("Depositing 100 TestUSDC on Arbitrum FeesPlug %s", address(feesPlug));
         feesPlug.depositToFeeAndNative(address(testUSDCContract), appGateway, feesAmount);
-        console.log("Added fee balance for AppGateway %s", feesAmount, appGateway);
+        console.log("Added 90 credits for fee balance and 10 native credits for AppGateway %s", appGateway);
+        console.log("If you want to deposit to fees only, it can be deposited using `depositToFee`");
     }
 }
