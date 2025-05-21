@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.0 <0.9.0;
 
-import "socket-protocol/contracts/base/AppGatewayBase.sol";
-import "socket-protocol/contracts/interfaces/IForwarder.sol";
-import "socket-protocol/contracts/interfaces/IPromise.sol";
+import "socket-protocol/contracts/evmx/base/AppGatewayBase.sol";
+import "socket-protocol/contracts/evmx/interfaces/IForwarder.sol";
+import "socket-protocol/contracts/evmx/interfaces/IPromise.sol";
 import "./Counter.sol";
 import "./ICounter.sol";
 
@@ -29,9 +29,9 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * @param addressResolver_ Address of the SOCKET Protocol's AddressResolver contract
      * @param fees_ Fee configuration for multi-chain operations
      */
-    constructor(address addressResolver_, Fees memory fees_) AppGatewayBase(addressResolver_) {
+    constructor(address addressResolver_, uint256 fees_) AppGatewayBase(addressResolver_) {
         creationCodeWithArgs[counter] = abi.encodePacked(type(Counter).creationCode);
-        _setOverrides(fees_);
+        _setMaxFees(fees_);
         _initializeOwner(msg.sender);
     }
 
@@ -42,7 +42,7 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * https://docs.socket.tech/writing-apps#onchain-contract-deployment-with-the-appgateway-contract
      * @param chainSlug_ The identifier of the target chain
      */
-    function deployContracts(uint32 chainSlug_) external async {
+    function deployContracts(uint32 chainSlug_) external async(bytes("")) {
         _deploy(counter, chainSlug_, IsPlug.YES);
     }
 
@@ -62,7 +62,7 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * @dev Calls the increase function on each counter instance provided
      * @param instances_ Array of counter contract addresses to increment
      */
-    function incrementCounters(address[] memory instances_) public async {
+    function incrementCounters(address[] memory instances_) public async(bytes("")) {
         for (uint256 i = 0; i < instances_.length; i++) {
             ICounter(instances_[i]).increase();
         }
@@ -73,8 +73,8 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * @dev Allows the owner to modify fee settings for multi-chain operations
      * @param fees_ New fee configuration
      */
-    function setFees(Fees memory fees_) public {
-        fees = fees_;
+    function setMaxFees(uint256 fees_) public {
+        maxFees = fees_;
     }
 
     /**

@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {ETH_ADDRESS} from "socket-protocol/contracts/protocol/utils/common/Constants.sol";
 
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 
