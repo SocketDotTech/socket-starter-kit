@@ -49,7 +49,7 @@ contract WithdrawFees is Script {
 
             // Gas price from Arbitrum
             uint256 arbitrumGasPrice = block.basefee + 0.1 gwei; // With buffer
-            uint256 gasLimit = 5_000_000; // Estimate
+            uint256 gasLimit = 50_000_000_000; // Estimate
             uint256 estimatedGasCost = gasLimit * arbitrumGasPrice;
 
             console.log("Arbitrum gas price (wei):", arbitrumGasPrice);
@@ -66,10 +66,6 @@ contract WithdrawFees is Script {
                 console.log("Withdrawing amount:", amountToWithdraw);
                 appGateway.withdrawFeeTokens(421614, address(testUSDCContract), amountToWithdraw, sender);
                 vm.stopBroadcast();
-
-                // Switch back to Arbitrum Sepolia to check final balance
-                vm.createSelectFork(vm.envString("ARBITRUM_SEPOLIA_RPC"));
-                console.log("Final sender balance:", sender.balance);
             } else {
                 console.log("Available fees less than estimated gas cost");
             }
