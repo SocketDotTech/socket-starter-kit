@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {FeesManager} from "socket-protocol/contracts/protocol/payload-delivery/FeesManager.sol";
-import {ETH_ADDRESS} from "socket-protocol/contracts/protocol/utils/common/Constants.sol";
+import {FeesManager} from "socket-protocol/contracts/evmx/payload-delivery/FeesManager.sol";
+import {TestUSDC} from "socket-protocol/contracts/evmx/helpers/TestUSDC.sol";
 
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 
@@ -35,9 +35,10 @@ contract WithdrawFees is Script {
         vm.createSelectFork(vm.envString("EVMX_RPC"));
         FeesManager feesManager = FeesManager(payable(vm.envAddress("FEES_MANAGER")));
         address appGatewayAddress = vm.envAddress("APP_GATEWAY");
+        TestUSDC testUSDCContract = TestUSDC(vm.envAddress("ARBITRUM_TEST_USDC"));
 
         CounterAppGateway appGateway = CounterAppGateway(appGatewayAddress);
-        uint256 availableFees = feesManager.getAvailableFees(421614, appGatewayAddress, ETH_ADDRESS);
+        uint256 availableFees = feesManager.getMaxCreditsAvailableForWithdraw(appGatewayAddress);
         console.log("Available fees:", availableFees);
 
         if (availableFees > 0) {
@@ -48,7 +49,7 @@ contract WithdrawFees is Script {
 
             // Gas price from Arbitrum
             uint256 arbitrumGasPrice = block.basefee + 0.1 gwei; // With buffer
-            uint256 gasLimit = 3_000_000; // Estimate
+            uint256 gasLimit = 50_000_000_000; // Estimate
             uint256 estimatedGasCost = gasLimit * arbitrumGasPrice;
 
             console.log("Arbitrum gas price (wei):", arbitrumGasPrice);
@@ -63,12 +64,8 @@ contract WithdrawFees is Script {
                 vm.createSelectFork(vm.envString("EVMX_RPC"));
                 vm.startBroadcast(privateKey);
                 console.log("Withdrawing amount:", amountToWithdraw);
-                appGateway.withdrawFeeTokens(421614, ETH_ADDRESS, amountToWithdraw, sender);
+                appGateway.withdrawFeeTokens(421614, address(testUSDCContract), amountToWithdraw, sender);
                 vm.stopBroadcast();
-
-                // Switch back to Arbitrum Sepolia to check final balance
-                vm.createSelectFork(vm.envString("ARBITRUM_SEPOLIA_RPC"));
-                console.log("Final sender balance:", sender.balance);
             } else {
                 console.log("Available fees less than estimated gas cost");
             }

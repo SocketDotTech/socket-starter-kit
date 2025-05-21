@@ -2,7 +2,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import "solady/auth/Ownable.sol";
-import "socket-protocol/contracts/base/PlugBase.sol";
+import "socket-protocol/contracts/protocol/base/PlugBase.sol";
 
 /**
  * @title Counter

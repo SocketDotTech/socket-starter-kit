@@ -3,9 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {FeesManager} from "socket-protocol/contracts/protocol/payload-delivery/FeesManager.sol";
-import {Fees} from "socket-protocol/contracts/protocol/utils/common/Structs.sol";
-import {ETH_ADDRESS} from "socket-protocol/contracts/protocol/utils/common/Constants.sol";
+import {FeesManager} from "socket-protocol/contracts/evmx/payload-delivery/FeesManager.sol";
 
 contract CheckDepositedFees is Script {
     function run() external {
@@ -13,12 +11,12 @@ contract CheckDepositedFees is Script {
         FeesManager feesManager = FeesManager(payable(vm.envAddress("FEES_MANAGER")));
         address appGateway = vm.envAddress("APP_GATEWAY");
 
-        (uint256 deposited, uint256 blocked) = feesManager.appGatewayFeeBalances(appGateway, 421614, ETH_ADDRESS);
+        (uint256 deposited, uint256 blocked) = feesManager.userCredits(appGateway);
         console.log("AppGateway:", appGateway);
         console.log("Total balance of available fees for this AppGateway: %s", deposited);
         console.log("Fees being locked due to existing transactions: %s", blocked);
 
-        uint256 availableFees = feesManager.getAvailableFees(421614, appGateway, ETH_ADDRESS);
+        uint256 availableFees = feesManager.getAvailableCredits(appGateway);
         console.log("Fees available to be spent on transactions: %s", availableFees);
     }
 }
