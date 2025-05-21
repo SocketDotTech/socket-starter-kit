@@ -27,7 +27,7 @@ contract DepositFees is Script {
         uint256 balance = testUSDCContract.balanceOf(sender);
         console.log("Using address %s with %s balance in wei", sender, balance);
 
-        console.log("Depositing 10 TestUSDC on Arbitrum FeesPlug %s", address(feesPlug));
+        console.log("Depositing 100 TestUSDC on Arbitrum FeesPlug %s", address(feesPlug));
         feesPlug.depositToFeeAndNative(address(testUSDCContract), appGateway, feesAmount);
         console.log("Added fee balance for AppGateway %s", feesAmount, appGateway);
     }
