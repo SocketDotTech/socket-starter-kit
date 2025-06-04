@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
+import "socket-protocol/contracts/evmx/interfaces/IFeesManager.sol";
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 
 /**
@@ -23,19 +24,24 @@ import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 contract CounterDeploy is Script {
     function run() external {
         address addressResolver = vm.envAddress("ADDRESS_RESOLVER");
+        IFeesManager feesManager = IFeesManager(payable(vm.envAddress("FEES_MANAGER")));
         string memory rpc = vm.envString("EVMX_RPC");
         vm.createSelectFork(rpc);
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        // Setting fee payment on Arbitrum Sepolia
-        uint256 fees = 10 ether;
+        uint256 fees = 0.1 ether;
 
         CounterAppGateway appGateway = new CounterAppGateway(addressResolver, fees);
 
         console.log("CounterAppGateway contract:", address(appGateway));
         console.log("See AppGateway on EVMx: https://evmx.cloud.blockscout.com/address/%s", address(appGateway));
         console.log("Do not forget to add the contract address to the .env file!");
+
+        console.log("Approving AppGateway to spend from funds in EOA");
+        AppGatewayApprovals[] memory approvals = new AppGatewayApprovals[](1);
+        approvals[0] = AppGatewayApprovals({appGateway: address(appGateway), approval: true});
+        feesManager.approveAppGateways(approvals);
     }
 }
