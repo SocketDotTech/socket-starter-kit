@@ -13,29 +13,29 @@ interface IERC20 {
 
 contract DepositCredit is Script {
     function run() external {
-        uint256 feesAmount = 1000000; // 1 USDC
-        console.log("Fees Amount:", feesAmount, "1 USDC");
-        FeesPlug feesPlug = FeesPlug(payable(vm.envAddress("ARBITRUM_FEES_PLUG")));
-        console.log("Fees Plug:", address(feesPlug));
-
         uint256 privateKey = vm.envUint("PRIVATE_KEY");
         address sender = vm.addr(privateKey);
         console.log("Sender address:", sender);
 
+        FeesPlug feesPlug = FeesPlug(payable(vm.envAddress("ARBITRUM_FEES_PLUG")));
         address arbitrumUSDC = vm.envAddress("ARBITRUM_USDC");
         IERC20 USDCContract = IERC20(arbitrumUSDC);
-        USDCContract.approve(address(feesPlug), feesAmount);
-        uint256 balance = USDCContract.balanceOf(sender);
-        console.log("Sender USDC balance:", balance);
-        if (balance < feesAmount) {
-            revert("Sender does not have enough USDC");
-        }
 
         vm.createSelectFork(vm.envString("ARBITRUM_RPC"));
         vm.startBroadcast(privateKey);
+        uint256 balance = USDCContract.balanceOf(sender);
 
-        address appGateway = vm.envAddress("APP_GATEWAY");
-        console.log("App Gateway:", appGateway);
-        feesPlug.depositCreditAndNative(arbitrumUSDC, appGateway, feesAmount);
+        uint256 feesAmount = 1000000; // 1 USDC
+        if (balance < feesAmount) {
+            console.log("Sender USDC balance:", balance);
+            revert("Sender does not have enough USDC. Requires 1 USDC.");
+        }
+
+        console.log("Depositing", feesAmount, " - 1 USDC to Arbitrum FeesPlug:", address(feesPlug));
+        console.log("Approving Spending...");
+        USDCContract.approve(address(feesPlug), feesAmount);
+
+        feesPlug.depositCreditAndNative(arbitrumUSDC, sender, feesAmount);
+        console.log("Corresponding EVMx credits will show up on your account");
     }
 }
