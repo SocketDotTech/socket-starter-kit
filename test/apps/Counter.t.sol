@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.21;
 
+import "socket-protocol/test/SetupTest.t.sol";
+import "socket-protocol/contracts/evmx/interfaces/IFeesManager.sol";
+
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 import {Counter} from "../../src/counter/Counter.sol";
-import "socket-protocol/test/SetupTest.t.sol";
 
 contract CounterTest is AppGatewayBaseSetup {
     uint256 feesAmount = 0.01 ether;
@@ -18,7 +20,10 @@ contract CounterTest is AppGatewayBaseSetup {
         deploy();
 
         counterGateway = new CounterAppGateway(address(addressResolver), feesAmount);
-        depositNativeAndCredits(arbChainSlug, 1 ether, 0, address(counterGateway));
+        depositNativeAndCredits(arbChainSlug, 1 ether, 0, address(this));
+        AppGatewayApprovals[] memory approvals = new AppGatewayApprovals[](1);
+        approvals[0] = AppGatewayApprovals({appGateway: address(counterGateway), approval: true});
+        feesManager.approveAppGateways(approvals);
         counterId = counterGateway.counter();
         contractIds[0] = counterId;
     }
