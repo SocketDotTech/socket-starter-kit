@@ -44,6 +44,9 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * @param chainSlug_ The identifier of the target chain
      */
     function deployContracts(uint32 chainSlug_) external async {
+        // This ensures the msg.sender is the one paying for the fees
+        // for more information see: https://docs.socket.tech/fees
+        _setOverrides(msg.sender);
         _deploy(counter, chainSlug_, IsPlug.YES);
     }
 
@@ -64,6 +67,9 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * @param instances_ Array of counter contract addresses to increment
      */
     function incrementCounters(address[] memory instances_) public async {
+        // This ensures the msg.sender is the one paying for the fees
+        // for more information see: https://docs.socket.tech/fees
+        _setOverrides(msg.sender);
         for (uint256 i = 0; i < instances_.length; i++) {
             ICounter(instances_[i]).increase();
         }
@@ -76,17 +82,5 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      */
     function setMaxFees(uint256 fees_) public {
         maxFees = fees_;
-    }
-
-    /**
-     * @notice Withdraws fee tokens from the SOCKET Protocol
-     * @dev Allows withdrawal of accumulated fees to a specified receiver
-     * @param chainSlug_ The chain from which to withdraw fees
-     * @param token_ The token address to withdraw
-     * @param amount_ The amount to withdraw
-     * @param receiver_ The address that will receive the withdrawn fees
-     */
-    function withdrawCredits(uint32 chainSlug_, address token_, uint256 amount_, address receiver_) external {
-        _withdrawCredits(chainSlug_, token_, amount_, receiver_);
     }
 }
