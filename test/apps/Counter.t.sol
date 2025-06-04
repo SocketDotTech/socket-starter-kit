@@ -3,35 +3,32 @@ pragma solidity ^0.8.21;
 
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 import {Counter} from "../../src/counter/Counter.sol";
-import "socket-protocol/test/DeliveryHelper.t.sol";
+import "socket-protocol/test/SetupTest.t.sol";
 
-contract CounterTest is DeliveryHelperTest {
+contract CounterTest is AppGatewayBaseSetup {
     uint256 feesAmount = 0.01 ether;
 
     bytes32 counterId;
     bytes32[] contractIds = new bytes32[](1);
-
     CounterAppGateway counterGateway;
 
-    function deploySetup() internal {
-        setUpDeliveryHelper();
+    event CounterScheduleResolved(uint256 creationTimestamp, uint256 executionTimestamp);
+
+    function setUp() public {
+        deploy();
 
         counterGateway = new CounterAppGateway(address(addressResolver), feesAmount);
-        depositUSDCFees(
-            address(counterGateway),
-            OnChainFees({chainSlug: arbChainSlug, token: address(arbConfig.feesTokenUSDC), amount: 1 ether})
-        );
-
+        depositNativeAndCredits(arbChainSlug, 1 ether, 0, address(counterGateway));
         counterId = counterGateway.counter();
         contractIds[0] = counterId;
     }
 
     function deployCounterApp(uint32 chainSlug) internal returns (uint40 requestCount) {
-        requestCount = _deploy(chainSlug, counterGateway, contractIds);
+        counterGateway.deployContracts(chainSlug);
+        requestCount = executeDeploy(counterGateway, chainSlug, contractIds);
     }
 
     function testCounterDeployment() external {
-        deploySetup();
         deployCounterApp(arbChainSlug);
 
         (address onChain, address forwarder) = getOnChainAndForwarderAddresses(arbChainSlug, counterId, counterGateway);
@@ -41,7 +38,6 @@ contract CounterTest is DeliveryHelperTest {
     }
 
     function testCounterIncrement() external {
-        deploySetup();
         deployCounterApp(arbChainSlug);
 
         (address arbCounter, address arbCounterForwarder) =
@@ -52,13 +48,12 @@ contract CounterTest is DeliveryHelperTest {
         address[] memory instances = new address[](1);
         instances[0] = arbCounterForwarder;
         counterGateway.incrementCounters(instances);
-        executeRequest(new bytes[](0));
+        executeRequest();
 
         assertEq(Counter(arbCounter).counter(), arbCounterBefore + 1);
     }
 
     function testCounterIncrementMultipleChains() public {
-        deploySetup();
         deployCounterApp(arbChainSlug);
         deployCounterApp(optChainSlug);
 
@@ -79,7 +74,7 @@ contract CounterTest is DeliveryHelperTest {
         chains[0] = arbChainSlug;
         chains[1] = optChainSlug;
 
-        executeRequest(new bytes[](0));
+        executeRequest();
         assertEq(Counter(arbCounter).counter(), arbCounterBefore + 1);
         assertEq(Counter(optCounter).counter(), optCounterBefore + 1);
     }

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {FeesManager} from "socket-protocol/contracts/evmx/payload-delivery/FeesManager.sol";
+import {FeesManager} from "socket-protocol/contracts/evmx/fees/FeesManager.sol";
 
 contract CheckDepositedFees is Script {
     function run() external {

@@ -29,10 +29,11 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * @param addressResolver_ Address of the SOCKET Protocol's AddressResolver contract
      * @param fees_ Fee configuration for multi-chain operations
      */
-    constructor(address addressResolver_, uint256 fees_) AppGatewayBase(addressResolver_) {
+    constructor(address addressResolver_, uint256 fees_) {
         creationCodeWithArgs[counter] = abi.encodePacked(type(Counter).creationCode);
         _setMaxFees(fees_);
         _initializeOwner(msg.sender);
+        _initializeAppGateway(addressResolver_);
     }
 
     /**
@@ -42,7 +43,7 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * https://docs.socket.tech/writing-apps#onchain-contract-deployment-with-the-appgateway-contract
      * @param chainSlug_ The identifier of the target chain
      */
-    function deployContracts(uint32 chainSlug_) external async(bytes("")) {
+    function deployContracts(uint32 chainSlug_) external async {
         _deploy(counter, chainSlug_, IsPlug.YES);
     }
 
@@ -53,7 +54,7 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      *      For more information on the initialize function, see:
      *      https://docs.socket.tech/deploy#initialize
      */
-    function initialize(uint32 /* chainSlug_ */ ) public pure override {
+    function initializeOnChain(uint32 /* chainSlug_ */ ) public pure override {
         return;
     }
 
@@ -62,7 +63,7 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * @dev Calls the increase function on each counter instance provided
      * @param instances_ Array of counter contract addresses to increment
      */
-    function incrementCounters(address[] memory instances_) public async(bytes("")) {
+    function incrementCounters(address[] memory instances_) public async {
         for (uint256 i = 0; i < instances_.length; i++) {
             ICounter(instances_[i]).increase();
         }
@@ -85,7 +86,7 @@ contract CounterAppGateway is AppGatewayBase, Ownable {
      * @param amount_ The amount to withdraw
      * @param receiver_ The address that will receive the withdrawn fees
      */
-    function withdrawFeeTokens(uint32 chainSlug_, address token_, uint256 amount_, address receiver_) external {
-        _withdrawFeeTokens(chainSlug_, token_, amount_, receiver_);
+    function withdrawCredits(uint32 chainSlug_, address token_, uint256 amount_, address receiver_) external {
+        _withdrawCredits(chainSlug_, token_, amount_, receiver_);
     }
 }
