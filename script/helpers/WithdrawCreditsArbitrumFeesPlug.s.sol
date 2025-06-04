@@ -33,7 +33,7 @@ contract WithdrawCredits is Script {
         if (availableCredits > 0) {
             uint256 maxFees = 10000000000000000; // Static 1 cent USDC credit (18 decimals)
             // TODO: Also wrap native amount to be able to max withdraw
-            uint256 amountToWithdraw = 900000000000000000; // availableCredits - maxFees;
+            uint256 amountToWithdraw = availableCredits - maxFees;
 
             if (amountToWithdraw > 0) {
                 vm.startBroadcast(privateKey);
