@@ -36,5 +36,6 @@ contract CounterDeploy is Script {
 
         console.log("CounterAppGateway contract:", address(appGateway));
         console.log("See AppGateway on EVMx: https://evmx.cloud.blockscout.com/address/%s", address(appGateway));
+        console.log("Do not forget to add the contract address to the .env file!");
     }
 }
