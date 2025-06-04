@@ -3,67 +3,45 @@ pragma solidity ^0.8.0;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {FeesManager} from "socket-protocol/contracts/evmx/fees/FeesManager.sol";
+import "socket-protocol/contracts/evmx/interfaces/IFeesManager.sol";
 
 import {CounterAppGateway} from "../../src/counter/CounterAppGateway.sol";
 
 /**
- * @title WithdrawFees Script
+ * @title WithdrawCredits Script
  * @notice Withdraws accumulated fees from EVMX to Arbitrum Sepolia
  * @dev This script:
  *      1. Checks available fees on EVMX
- *      2. Switches to Arbitrum Sepolia to estimate gas costs
- *      3. Calculates a safe amount to withdraw (fees minus estimated gas costs)
- *      4. Performs the withdrawal if the amount is positive
- *      5. Verifies final balance on Arbitrum Sepolia
+ *      2. Performs the withdrawal if the amount is positive
  *
  *      This demonstrates how developers can retrieve fees that their application has earned
- *      through Socket Protocol's fee system.
- *
- *      Required environment variables:
- *      - EVMX_RPC: RPC URL for the EVMx network
- *      - ARBITRUM_SEPOLIA_RPC: RPC URL for Arbitrum Sepolia
- *      - PRIVATE_KEY: Private key of the deployer account
- *      - FEES_MANAGER: Address of Socket Protocol's FeesManager contract
- *      - APP_GATEWAY: Address of the deployed CounterAppGateway
- * @notice Ensure your app has withdrawFeeTokens() function implemented. You can check its implementation in CounterAppGateway.sol
+ *      through SOCKET Protocol's fee system.
  */
-contract WithdrawFees is Script {
+contract WithdrawCredits is Script {
     function run() external {
         // EVMX Check available fees
         vm.createSelectFork(vm.envString("EVMX_RPC"));
-        FeesManager feesManager = FeesManager(payable(vm.envAddress("FEES_MANAGER")));
-        address appGatewayAddress = vm.envAddress("APP_GATEWAY");
-        address token = vm.envAddress("USDC");
+        IFeesManager feesManager = IFeesManager(payable(vm.envAddress("FEES_MANAGER")));
+        address token = vm.envAddress("ARBITRUM_USDC");
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        address sender = vm.addr(privateKey);
 
-        CounterAppGateway appGateway = CounterAppGateway(appGatewayAddress);
-        uint256 availableFees = feesManager.getAvailableCredits(appGatewayAddress);
-        console.log("Available fees:", availableFees);
+        uint256 availableCredits = feesManager.getAvailableCredits(sender);
+        console.log("Available credits:", availableCredits);
+        //consfeesManager.tokenOntokenOnChainBalances[42161][token];
 
-        if (availableFees > 0) {
-            // Switch to Arbitrum Sepolia to get gas price
-            vm.createSelectFork(vm.envString("ARBITRUM_SEPOLIA_RPC"));
-            uint256 privateKey = vm.envUint("PRIVATE_KEY");
-            address sender = vm.addr(privateKey);
-
-            // Gas price from Arbitrum
-            uint256 arbitrumGasPrice = block.basefee + 0.1 gwei; // With buffer
-            uint256 gasLimit = 5_000_000; // Estimate
-            uint256 estimatedGasCost = gasLimit * arbitrumGasPrice;
-
-            console.log("Arbitrum gas price (wei):", arbitrumGasPrice);
-            console.log("Gas limit:", gasLimit);
-            console.log("Estimated gas cost:", estimatedGasCost);
-
-            // Calculate amount to withdraw
-            uint256 amountToWithdraw = availableFees > estimatedGasCost ? availableFees - estimatedGasCost : 0;
+        if (availableCredits > 0) {
+            uint256 maxFees = 10000000000000000; // Static 1 cent USDC credit (18 decimals)
+            // TODO: Also wrap native amount to be able to max withdraw
+            uint256 amountToWithdraw = 900000000000000000; // availableCredits - maxFees;
 
             if (amountToWithdraw > 0) {
-                // Switch back to EVMX to perform withdrawal
-                vm.createSelectFork(vm.envString("EVMX_RPC"));
                 vm.startBroadcast(privateKey);
+                AppGatewayApprovals[] memory approvals = new AppGatewayApprovals[](1);
+                approvals[0] = AppGatewayApprovals({appGateway: address(feesManager), approval: true});
+                feesManager.approveAppGateways(approvals);
                 console.log("Withdrawing amount:", amountToWithdraw);
-                appGateway.withdrawCredits(421614, token, amountToWithdraw, sender);
+                feesManager.withdrawCredits(42161, token, amountToWithdraw, maxFees, sender);
                 vm.stopBroadcast();
             } else {
                 console.log("Available fees less than estimated gas cost");
